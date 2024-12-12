@@ -1,6 +1,6 @@
 from fp_py import pipe
 from fastapi import FastAPI, Depends, APIRouter
-from core import Trpc, schemaW
+from src.core import Trpc, schemaW
 from pydantic import BaseModel, Field
 
 app = FastAPI()
@@ -12,10 +12,11 @@ class P(BaseModel):
     k: str = Field(default="")
 
 
+public_procedure = trpc.procedure(wrapped_middleware_func=lambda x: x())
+
 k = trpc.router(
     a={
-        "b": trpc.procedure()
-        .use(lambda ctx: 4)
+        "b": public_procedure.use(lambda ctx: 4)
         .input(schemaW(P))
         .query(lambda input, ctx: f"{input.k}: {input.i + ctx}")
     },
