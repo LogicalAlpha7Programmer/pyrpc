@@ -147,21 +147,23 @@ class Trpc:
         obj = kwargs
         if router_name is not None and not router_name.isspace():
             obj = {router_name: obj}
+
+        if issubclass(self.app_or_router, (FastAPI, APIRouter)):
+            self.app_or_router.include_router(APIRouter())
+
         routes = map_routes(self.app_or_router, dot_shrink(obj))
 
         self.routes.update(routes)
         return routes
 
 
-def match_procedure_routes[
-    O
-](app: FastAPI | APIRouter, func: Callable[..., O], path: str):
+def match_procedure_routes[O](router: APIRouter, func: Callable[..., O], path: str):
 
     match (func.__execute_type__):
         case ExecuteTypes.MUTATION:
-            app.add_api_route(f"/{path}", func, methods=["POST"])
+            router.add_api_route(f"/{path}", func, methods=["POST"])
         case ExecuteTypes.QUERY:
-            app.add_api_route(f"/{path}", func, methods=["GET"])
+            router.add_api_route(f"/{path}", func, methods=["GET"])
 
     return path
 
@@ -180,8 +182,8 @@ def dot_shrink(obj: dict[str, Any]):
     return new_obj
 
 
-def map_routes(app: FastAPI | APIRouter, paths: dict[str, Any]):
+def map_routes(router: APIRouter, paths: dict[str, Any]):
     for key in paths:
-        match_procedure_routes(app, paths[key], key)
+        match_procedure_routes(router, paths[key], key)
 
     return paths
