@@ -2,8 +2,8 @@ import inspect
 from typing import Callable, Any
 
 from fastapi import APIRouter, FastAPI
-from pydantic import BaseModel
-from fp_py import flow
+from pydantic import BaseModel, create_model
+from . import fp_py as ff
 
 
 # Define type variables
@@ -26,6 +26,15 @@ def schemaW(obj):
 
 class ProcedureError(Exception):
     pass
+
+
+def create_dynamic_model(name: str, schema_dict: dict):
+    """
+    Creates a dynamic Pydantic model from a dictionary schema.
+    """
+    return create_model(
+        name, **{key: (type(value), value) for key, value in schema_dict.items()}
+    )
 
 
 class Procedure[If, I, C]:
@@ -80,7 +89,7 @@ class Procedure[If, I, C]:
         return Procedure[If, I, Cf](
             self.schema_input,
             self.schema_input_type,
-            flow(self.middlewares_flow, func),
+            ff.flow(self.middlewares_flow, func),
             self.wrapped_middleware_func,
         )
 
@@ -138,7 +147,7 @@ class Procedure[If, I, C]:
 
 class Trpc:
     def __init__(self, app_or_router: FastAPI | APIRouter) -> None:
-        self.procedure = Procedure
+        self.procedure = Procedure()
         self.routes: dict[str, Any] = {}
         self.app_or_router = app_or_router
 
@@ -147,10 +156,6 @@ class Trpc:
         obj = kwargs
         if router_name is not None and not router_name.isspace():
             obj = {router_name: obj}
-
-        if issubclass(self.app_or_router, (FastAPI, APIRouter)):
-            self.app_or_router.include_router(APIRouter())
-
         routes = map_routes(self.app_or_router, dot_shrink(obj))
 
         self.routes.update(routes)

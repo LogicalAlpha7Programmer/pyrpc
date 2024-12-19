@@ -1,52 +1,47 @@
-from fastapi import Depends
-from pydantic import BaseModel
-from core import ClassType, schemaW, typeof, Procedure, dot_shrink
-from json_obj import obj
-from fp_py import pipe
-from typing import TypedDict, Callable
-from dataclasses import dataclass
+from typing import Callable
+import asyncio
 
-# Example usage
-example = obj(x=1, k="3")
-for key, value in example:
-    print(f"{key}: {value}")
-print(example)
+conditional_assignment: Callable[[float], float] = lambda x: (
+    (square := x**2) if x % 2 == 0 else (cube := x**3),  # Conditional assignment
+    square if x % 2 == 0 else cube,
+)[-1]
+
+result = conditional_assignment(3)
+print("Conditional Result:", result)
 
 
-class Router(obj):
-    pass
+assign_in_tuple: Callable[[float], tuple[float, float]] = lambda x: (
+    (square := x**2),  # Assign square
+    (cube := x**3),  # Assign cube
+    (cube, square),  # Return cube
+)[-1]
+
+result = assign_in_tuple(3)
+print("Result:", result)  # Output: 27
 
 
-class P(BaseModel):
-    i: int
+class MyClass:
+    def __init__(self, **opts):
+        self.opts = opts
+
+    def decorator_func(self, x, y):
+        def wrapper(func):
+
+            async def wrapped(*args, **kwargs):
+                print("kwargs:", kwargs, "args", args)
+                return await func(*args, **kwargs, **self.opts, x=x, y=y)
+
+            return wrapped
+
+        return wrapper
 
 
-class M(BaseModel):
-    m: int
+c = MyClass(o=2, k=5)
 
 
-base = Procedure()
-auth = base.use(lambda _: 20)
-protected = auth.use(lambda ctx: pipe(20, lambda a: ctx == a))
-# Add an input schema for the execute function
-signIn = protected.input(schemaW(P)).query(
-    lambda input, ctx: f"succeshh {ctx} {input.i}"
-)
+@c.decorator_func(x=2, y=5)
+async def hello(c=1, b=2, **opts):
+    print("b:", b, "c:", c, "opts:", opts)
 
-# Call execute function with the input
 
-router = obj(
-    auth=obj(
-        sign_in=signIn,
-        sign_up=auth.input(schemaW(M)).mutation(lambda inputs, ctx: "23"),
-    ),
-    h=signIn,
-)
-
-router.k = base.input(schemaW(M)).mutation(lambda input, ctx: "")
-
-k = router.auth.sign_in(P(i=2))
-s = {"a": 3, "b": {"c": {"d": 1}}, "e": {"f": 4}}
-print(dot_shrink(s))
-print(k)
-print(type({"a": {}}))
+asyncio.run(hello(c=2, b=3, m=3))

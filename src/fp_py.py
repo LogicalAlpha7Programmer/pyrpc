@@ -54,7 +54,7 @@ def pipe[
 def flow[
     A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U
 ](
-    fb: Callable[[A], B],
+    fb: Callable[[A | None], B],
     fc: Callable[[B], C] = lambda x: x,
     fd: Callable[[C], D] = lambda x: x,
     fe: Callable[[D], E] = lambda x: x,
@@ -75,7 +75,7 @@ def flow[
     ft: Callable[[S], T] = lambda x: x,
     fu: Callable[[T], U] = lambda x: x,
 ):
-    def compose(a: A):
+    def compose(a: A | None = None):
         return pipe(
             a,
             fb,
