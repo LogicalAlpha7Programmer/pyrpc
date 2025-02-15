@@ -21,11 +21,11 @@ print("Result:", result)  # Output: 27
 
 
 class MyClass:
-    def __init__(self, **opts):
+    def __init__(self, **opts: C):
         self.opts = opts
 
     def decorator_func(self, x, y):
-        def wrapper(func):
+        def wrapper(func: Callable[[A], B]):
 
             async def wrapped(*args, **kwargs):
                 print("kwargs:", kwargs, "args", args)

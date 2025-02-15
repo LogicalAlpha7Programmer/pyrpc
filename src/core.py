@@ -3,7 +3,7 @@ from typing import Callable, Any
 
 from fastapi import APIRouter, FastAPI
 from pydantic import BaseModel, create_model
-from . import fp_py as ff
+from . import fp_py as fp
 
 
 # Define type variables
@@ -89,7 +89,7 @@ class Procedure[If, I, C]:
         return Procedure[If, I, Cf](
             self.schema_input,
             self.schema_input_type,
-            ff.flow(self.middlewares_flow, func),
+            fp.flow(self.middlewares_flow, func),
             self.wrapped_middleware_func,
         )
 

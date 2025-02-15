@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, APIRouter
+from fastapi import FastAPI
 from src.core import Trpc, schemaW
 from pydantic import BaseModel, Field
 
@@ -8,7 +8,7 @@ trpc = Trpc(app)
 
 class P(BaseModel):
     i: int
-    k: str = Field(default="")
+    k: str = Field(default="sdt")
 
 
 public_procedure = trpc.procedure
@@ -24,3 +24,4 @@ k = trpc.router(
     .mutation(lambda input, ctx: input.i + ctx),
 )
 m = k["a.b"](i=6, k="hello")
+
