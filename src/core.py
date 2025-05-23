@@ -150,6 +150,7 @@ class Trpc:
         self.procedure = Procedure()
         self.routes: dict[str, Any] = {}
         self.app_or_router = app_or_router
+    
 
     def router(self, router_name: str | None = None, **kwargs):
         """Adds Routes to Trpc"""
