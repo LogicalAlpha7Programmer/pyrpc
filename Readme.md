@@ -164,6 +164,8 @@ This pipelines three middleware transformations that ultimately provide a contex
 
 ```bash
 uvicorn main:app --reload
+or
+fastapi dev
 ```
 
 Open [http://localhost:8000/docs](http://localhost:8000/docs) for interactive API docs with custom Monokai syntax highlighting.
