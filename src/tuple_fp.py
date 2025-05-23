@@ -1,4 +1,4 @@
-from typing import Callable, LiteralString
+from typing import Callable
 conditional_assignment: Callable[[float], float] = lambda x: (
     (square := x**2) if x % 2 == 0 else (cube := x**3),  # Conditional assignment
     square if x % 2 == 0 else cube,
@@ -63,22 +63,34 @@ class Case[CV, MB, CR](Statement):
         return self if self.result is not None else Case(self.value, self.matched, result)
 
 
-def option[CVs](options: dict[bool | LiteralString, CVs]) -> CVs:
-    for condition, value in options.items():
-        if condition:
-            return value
-        if condition == "_":
-            return value
-            
+class For[A, C, R](Statement):
+    def __init__(self, initializer: A, condition: Callable[[A], bool], operation: Callable[[A], C], _result: Callable[[A, Callable[[A], bool], Callable[[A], C]], R]) -> None:
+        self.initializer = initializer
+        self.condition = condition
+        self.operation = operation
+        self._result = _result
 
-class Tuple_Programming:
+    def then[Rn](self, result: Callable[[A, Callable[[A], bool], Callable[[A], C]], Rn]):
+        return For(self.initializer, self.condition, self.operation, result)
+    
+    @property
+    def result(self):
+        i = self.initializer
+        k = None
+        while self.condition(i):
+            k = self._result(i, self.condition, self.operation(i))
+            i = self.operation(i)
+        return k
+
+class TP:
     def __init__(self) -> None:
         self.If = tif
         self.Match = Case
 
+tp = TP()
 # Usage Example
 result: Callable[[int], int | str | None] = lambda y: (
-    tif(y > 2)
+    tp.If(y > 2)
     .then(((x := 3),x + y)[-1])
     .else_then(((x := x + 6),"False Case " + str(x))[-1])
     .result
@@ -87,7 +99,7 @@ result: Callable[[int], int | str | None] = lambda y: (
 print("Chained Result:", result(3))  # Output: "True Case"
 
 # Chained example
-result2 = tif(3 < 2).then("True Case").else_if(2 < 5).then("Else-If Case").result
+result2 = tp.If(3 < 2 and 4 < 2).then("True Case").else_if(9 < 5).then("Else-If Case").result
 print("Chained Result with Else-If:", result2)  # Output: "Else-If Case"
 
 
@@ -95,11 +107,12 @@ print("Chained Result with Else-If:", result2)  # Output: "Else-If Case"
 # Example Usage:
 x = 10
 
-result3 = (Case(x)
+result3 = (tp.Match(x)
           .case(lambda m: m == 1).then(1)
           .case(lambda x: x == 2).then("Two")
           .case(lambda x: x == 3).then("Three")
           .default("Other").result)
 
-print("Case Result:", result3)  # Output: "Three"
+
+print("Case Result:", (1, 2, 4)*2)  # Output: "Three"
 

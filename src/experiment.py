@@ -1,3 +1,4 @@
+import inspect
 from typing import Callable
 import asyncio
 
@@ -19,18 +20,30 @@ assign_in_tuple: Callable[[float], tuple[float, float]] = lambda x: (
 result = assign_in_tuple(3)
 print("Result:", result)  # Output: 27
 
+def merge_signatures(sig1: inspect.Signature, sig2: inspect.Signature) -> inspect.Signature:
+    """
+    Merges two function signatures into one.
+    If duplicate parameter names exist, the first signature's parameters take priority.
+    """
+    parameters = {param.name: param for param in sig1.parameters.values()}
+    parameters.update(sig2.parameters)  # Add/Update with second signature's params
 
-class MyClass:
+    return inspect.Signature(parameters.values())
+
+class MyClass[C]:
     def __init__(self, **opts: C):
         self.opts = opts
 
-    def decorator_func(self, x, y):
-        def wrapper(func: Callable[[A], B]):
+    def decorator_func(self, **params):
+        def wrapper[A, B](func: Callable[[A], B]):
 
             async def wrapped(*args, **kwargs):
                 print("kwargs:", kwargs, "args", args)
-                return await func(*args, **kwargs, **self.opts, x=x, y=y)
-
+                return await func(*args, **kwargs, **self.opts, **params)
+            sig = inspect.signature(func)
+            parameters = {param.name: param for param in sig.parameters.values()}
+            self.opts.update(params)
+            parameters.update({"**opts": inspect.Parameter("opts")})
             return wrapped
 
         return wrapper
