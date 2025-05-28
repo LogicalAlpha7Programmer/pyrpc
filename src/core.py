@@ -1,9 +1,10 @@
+from enum import Enum
 import inspect
 from typing import Callable, Any
 
 from fastapi import APIRouter, FastAPI
 from pydantic import BaseModel, create_model
-from . import fp_py as fp
+from . import fp
 
 
 # Define type variables
@@ -145,6 +146,7 @@ class Procedure[If, I, C]:
         return process_query
 
 
+
 class Trpc:
     def __init__(self, app_or_router: FastAPI | APIRouter) -> None:
         self.procedure = Procedure()
@@ -154,12 +156,14 @@ class Trpc:
 
     def router(self, router_name: str | None = None, **kwargs):
         """Adds Routes to Trpc"""
+        sub_router = APIRouter(tags=[router_name])
         obj = kwargs
         if router_name is not None and not router_name.isspace():
             obj = {router_name: obj}
-        routes = map_routes(self.app_or_router, dot_shrink(obj))
+        routes = map_routes(sub_router, dot_shrink(obj))
 
         self.routes.update(routes)
+        self.app_or_router.include_router(sub_router)
         return routes
 
 

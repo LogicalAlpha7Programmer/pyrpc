@@ -17,6 +17,8 @@ class P(BaseModel):
 
 public_procedure = trpc.procedure
 
+
+
 k = trpc.router("Hello",
     a={
         "b": public_procedure.use(lambda ctx: 4)
