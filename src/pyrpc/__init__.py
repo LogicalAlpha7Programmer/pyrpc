@@ -1,3 +1,4 @@
+
 from enum import Enum
 import inspect
 from typing import Callable, Any
@@ -5,7 +6,6 @@ from typing import Callable, Any
 from fastapi import APIRouter, FastAPI
 from pydantic import BaseModel, create_model
 from . import fp
-
 
 # Define type variables
 class ClassType[C]:

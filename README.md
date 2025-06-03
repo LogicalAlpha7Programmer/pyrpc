@@ -29,7 +29,9 @@ Clone this repository and include it in your Python path to import `Trpc`, `sche
 ```python
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
-from src.core import Trpc, schemaW, TP
+from pyrpc import Trpc, schemaW
+from pyrpc.tuple import TP
+from pyrpc.fp import flow, pipe
 
 app = FastAPI(swagger_ui_parameters={"syntaxHighlight.theme": "monokai"})
 trpc = Trpc(app)
