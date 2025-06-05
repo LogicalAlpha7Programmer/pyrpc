@@ -17,7 +17,7 @@ PyRPC is a lightweight Python RPC framework built on FastAPI and Pydantic. It le
 ## Installation
 
 ```bash
-pip install -i https://test.pypi.org/simple/ pyrpc==0.0.1
+pip install fastapi_pyrpc==0.0.1
 or
 git clone https://github.com/LogicalAlpha7Programmer/pyrpc.git
 ```

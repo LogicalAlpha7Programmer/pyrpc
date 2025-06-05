@@ -1,6 +1,4 @@
 .venv
-pyproject.toml
 
 __pycache__/
-dist/
 
