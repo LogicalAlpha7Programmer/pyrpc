@@ -4,7 +4,7 @@ from typing import Callable
 
 # Pipe function with up to 20 transformations
 def pipe[
-    A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U
+    A, B, C, D, E, F, G, H, I, J, K, U
 ](
     a: A,
     fb: Callable[[A], B],
@@ -17,17 +17,7 @@ def pipe[
     fi: Callable[[H], I] = lambda x: x,
     fj: Callable[[I], J] = lambda x: x,
     fk: Callable[[J], K] = lambda x: x,
-    fl: Callable[[K], L] = lambda x: x,
-    fm: Callable[[L], M] = lambda x: x,
-    fn: Callable[[M], N] = lambda x: x,
-    fo: Callable[[N], O] = lambda x: x,
-    fp: Callable[[O], P] = lambda x: x,
-    fq: Callable[[P], Q] = lambda x: x,
-    fr: Callable[[Q], R] = lambda x: x,
-    fs: Callable[[R], S] = lambda x: x,
-    ft: Callable[[S], T] = lambda x: x,
-    fu: Callable[[T], U] = lambda x: x,
-) -> U:
+) -> K:
     b = fb(a)
     c = fc(b)
     d = fd(c)
@@ -38,21 +28,11 @@ def pipe[
     i = fi(h)
     j = fj(i)
     k = fk(j)
-    l = fl(k)
-    m = fm(l)
-    n = fn(m)
-    o = fo(n)
-    p = fp(o)
-    q = fq(p)
-    r = fr(q)
-    s = fs(r)
-    t = ft(s)
-    u = fu(t)
-    return u
+    return k
 
 
 def flow[
-    A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U
+    A, B, C, D, E, F, G, H, I, J, K
 ](
     fb: Callable[[A | None], B],
     fc: Callable[[B], C] = lambda x: x,
@@ -64,17 +44,7 @@ def flow[
     fi: Callable[[H], I] = lambda x: x,
     fj: Callable[[I], J] = lambda x: x,
     fk: Callable[[J], K] = lambda x: x,
-    fl: Callable[[K], L] = lambda x: x,
-    fm: Callable[[L], M] = lambda x: x,
-    fn: Callable[[M], N] = lambda x: x,
-    fo: Callable[[N], O] = lambda x: x,
-    fp: Callable[[O], P] = lambda x: x,
-    fq: Callable[[P], Q] = lambda x: x,
-    fr: Callable[[Q], R] = lambda x: x,
-    fs: Callable[[R], S] = lambda x: x,
-    ft: Callable[[S], T] = lambda x: x,
-    fu: Callable[[T], U] = lambda x: x,
-):
+) -> Callable[[A],K]:
     def compose(a: A | None = None):
         return pipe(
             a,
@@ -88,16 +58,6 @@ def flow[
             fi,
             fj,
             fk,
-            fl,
-            fm,
-            fn,
-            fo,
-            fp,
-            fq,
-            fr,
-            fs,
-            ft,
-            fu,
         )
 
     return compose

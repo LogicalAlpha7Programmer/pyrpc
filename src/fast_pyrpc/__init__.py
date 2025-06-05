@@ -154,16 +154,16 @@ class Trpc:
         self.app_or_router = app_or_router
     
 
-    def router(self, router_name: str | None = None, **kwargs):
+    def router(self, router_name: str = "", api_router = APIRouter(), **kwargs):
         """Adds Routes to Trpc"""
-        sub_router = APIRouter(tags=[router_name])
+        api_router.tags.append(router_name)
         obj = kwargs
         if router_name is not None and not router_name.isspace():
             obj = {router_name: obj}
-        routes = map_routes(sub_router, dot_shrink(obj))
+        routes = map_routes(api_router, dot_shrink(obj))
 
         self.routes.update(routes)
-        self.app_or_router.include_router(sub_router)
+        self.app_or_router.include_router(api_router)
         return routes
 
 
