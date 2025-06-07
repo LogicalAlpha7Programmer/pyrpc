@@ -1,9 +1,9 @@
 
 from enum import Enum
 import inspect
-from typing import Callable, Any
+from typing import Callable, Any, Coroutine
 
-from fastapi import APIRouter, FastAPI
+from fastapi import APIRouter, Depends, FastAPI
 from pydantic import BaseModel, create_model
 from . import fp
 
@@ -38,6 +38,7 @@ def create_dynamic_model(name: str, schema_dict: dict):
     )
 
 
+
 class Procedure[If, I, C]:
     """
     A Procedure class that handles pipelining middlewares and executing in
@@ -69,6 +70,38 @@ class Procedure[If, I, C]:
         """Gets the context"""
         return self.wrapped_middleware_func(self._get_middleware_context)
 
+    def _handle_query_types[O](self, process_query: Callable[...,O]):
+
+        process_query.__execute_type__ = ExecuteTypes.QUERY
+        process_query.__input_schema__ = self.schema_input
+        if issubclass(self.schema_input, BaseModel):
+            print(self.schema_input.__signature__)
+            process_query.__signature__ = inspect.Signature(
+                [
+                    inspect.Parameter(
+                        name=key,
+                        kind=inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                        annotation=value.annotation,
+                        default=value.default,
+                    )
+                    for key, value in self.schema_input.model_fields.items()
+                ]
+            )
+
+        return process_query
+    
+    def _handle_mutation_types[O](self, process_mutation: Callable[[I], O]):
+        process_mutation.__execute_type__ = ExecuteTypes.MUTATION
+        process_mutation.__annotations__["input"] = self.schema_input
+        return process_mutation
+
+    def depends(self):
+        """FastAPI Depend function integration"""
+        pass
+
+    def decorator(self):
+        pass
+
     def input[Ifn, In](self, schemaW: tuple[Ifn, In] | None = None):
         """
         Creates a handler for input schema
@@ -96,6 +129,7 @@ class Procedure[If, I, C]:
 
     def mutation[O](self, func: Callable[[I, C], O]):
 
+        @self._handle_mutation_types
         def process_mutation(input: I) -> O:
             """
             Processes the input through all middleware and returns the final mutation output.
@@ -109,12 +143,10 @@ class Procedure[If, I, C]:
 
             except ProcedureError:
                 pass
-
-        process_mutation.__execute_type__ = ExecuteTypes.MUTATION
-        process_mutation.__annotations__["input"] = self.schema_input
         return process_mutation
 
     def query[O](self, func: Callable[[I, C], O]):
+        @self._handle_query_types
         def process_query(**kwargs: ...) -> O:
             """
             Processes the input through all middleware and returns the final query output.
@@ -127,23 +159,51 @@ class Procedure[If, I, C]:
 
             except ProcedureError:
                 pass
-
-        process_query.__execute_type__ = ExecuteTypes.QUERY
-        process_query.__input_schema__ = self.schema_input
-        if issubclass(self.schema_input, BaseModel):
-            print(self.schema_input.__signature__)
-            process_query.__signature__ = inspect.Signature(
-                [
-                    inspect.Parameter(
-                        key,
-                        inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                        annotation=value.annotation,
-                        default=value.default,
-                    )
-                    for key, value in self.schema_input.model_fields.items()
-                ]
-            )
         return process_query
+
+    def async_query[O](self, func: Callable[[I, C], Coroutine[None, None, O]]):
+        
+        @self._handle_query_types
+        async def process_query(**kwargs: ...) -> O:
+            """
+            Processes the input through all middleware and returns the final query output.
+            """
+            try:
+                context: C = self._get_context()
+                return await func(
+                    self.schema_input(**kwargs), context
+                )  # Pass the processed value through the mutation function
+
+            except ProcedureError:
+                pass
+        return process_query
+
+    
+    def async_mutation[O](self, func: Callable[[I, C], Coroutine[None, None, O]]):
+
+        @self._handle_mutation_types
+        async def process_mutation(input: I) -> O:
+            """
+            Processes the input through all middleware and returns the final mutation output.
+            """
+
+            try:
+                context: C = self._get_context()
+                return await func(
+                    input, context
+                )  # Pass the processed value through the mutation function
+
+            except ProcedureError:
+                pass
+        return process_mutation
+
+
+# class DecoratorProcedure[If, I, C](Procedure):
+#     def __init__(self, schema_input: If | None = None, schema_input_type: I | None = None, middlewares_flow: Callable[[Any], C | Any] = lambda x: x, wrapped_middleware_func: Callable[[Callable[[], C | Any]], C | Any] = lambda x: x()) -> None:
+#         super().__init__(schema_input, schema_input_type, middlewares_flow, wrapped_middleware_func)
+#
+#     def _handle_mutation_types[O](self, process_mutation: Callable[[I], O]):
+#         super()._handle_mutation_types(process_mutation)
 
 
 

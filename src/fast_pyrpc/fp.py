@@ -4,7 +4,7 @@ from typing import Callable
 
 # Pipe function with up to 20 transformations
 def pipe[
-    A, B, C, D, E, F, G, H, I, J, K, U
+    A, B, C, D, E, F, G, H, I, J, K
 ](
     a: A,
     fb: Callable[[A], B],

@@ -1,9 +1,9 @@
-from fastapi import APIRouter, FastAPI
+from fastapi import Depends, FastAPI
 from pydantic import BaseModel, Field
 from fast_pyrpc import Trpc, schemaW
 from fast_pyrpc.fp import flow, pipe
 from fast_pyrpc.tuple import TP
-app = FastAPI(swagger_ui_parameters={"syntaxHighlight.theme": "monokai"})
+app = FastAPI(title="PYRPC", summary="A TRPC Framework built for python", swagger_ui_parameters={"syntaxHighlight.theme": "monokai"})
 trpc = Trpc(app)
 tp = TP()
 
@@ -15,6 +15,8 @@ class Q(BaseModel):
     n: float
     b: bool = Field(default=True)
 
+    
+
 public = trpc.procedure
 
 router = trpc.router("examples",
@@ -23,14 +25,14 @@ router = trpc.router("examples",
         public
         .use(lambda ctx: 5)
         .input(schemaW(P))
-        .query(lambda input, ctx: (f"{input.k}:{input.i + ctx}",)[0])
+        .query(lambda input, ctx: (f"{input.k}:{input.i + ctx}",)[-1])
     ),
 
     calc_mutation=(
         public
         .use(flow(lambda _: 3, lambda x: x + 7))
         .input(schemaW(P))
-        .mutation(lambda input, ctx: (input.i * ctx,)[0])
+        .mutation(lambda input, ctx: (input.i * ctx,)[-1])
     ),
 
     complex_case=(
@@ -43,7 +45,7 @@ router = trpc.router("examples",
             .case(lambda x: 5 <= x <= 10).then("Medium")
             .default("Large")
             .result,
-        )[0])
+        )[-1])
     ),
 
     chained_pipe=(
@@ -52,7 +54,7 @@ router = trpc.router("examples",
         .input(schemaW(P))
         .mutation(lambda input, ctx: (
             pipe(input.i, lambda x: x + 1, lambda x: x * ctx),
-        )[0])
+        )[-1])
     ),
 
     conditional=(
@@ -64,6 +66,11 @@ router = trpc.router("examples",
             .then(f"Even: {input.i + ctx}")
             .else_then(f"Odd: {input.i - ctx}")
             .result,
-        )[0])
+        )[-1])
     ),
 )
+
+# @public.decorator.query
+# async def _(input: P, ctx: int = Depends(lambda _: 8)):
+#
+#     pass

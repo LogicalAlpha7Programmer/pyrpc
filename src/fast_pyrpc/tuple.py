@@ -35,13 +35,15 @@ class tif[A, D](Statement):
         return tif(condition)
 
     def else_then[C](self, value: C):
-        t_if = self if self.condition else tif(self.condition, self.value, value)
+        t_if = self if self.condition else tif(self.condition, value ,self.value)
         # relse_eturn t_if.value if t_if.value is not None else t_if.alternate
         return t_if
     @property
     def result(self):
         t_if = self.else_then(None)
         return t_if.value if t_if.value is not None else t_if.alternate
+
+
 
 class Case[CV, MB, CR](Statement):
     def __init__(self, value: CV, matched: MB = False, result: CR = None ) -> None:
